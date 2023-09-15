@@ -2,6 +2,7 @@ import { GameObject, NeedleEngine, OrbitControls } from '@needle-tools/engine';
 import { AxesHelper, GridHelper, MathUtils } from 'three';
 import * as THREE from 'three';
 import { PlayerController } from './modules/input/PlayerController';
+import { CameraController } from './modules/input/CameraController';
 
 NeedleEngine.addContextCreatedCallback((args) => {
   const context = args.context!;
@@ -21,5 +22,12 @@ NeedleEngine.addContextCreatedCallback((args) => {
   const cube = new THREE.Mesh(geometry, material);
   cube.position.y += 0.5;
   scene.add(cube);
-  GameObject.addComponent(cube, new PlayerController());
+  const player = new PlayerController();
+  GameObject.addComponent(cube, player);
+
+  let camController = new CameraController();
+  console.log(camController);
+  GameObject.addComponent(camera.gameObject, camController);
+  camController.target = player;
+  console.log('we got here');
 });
