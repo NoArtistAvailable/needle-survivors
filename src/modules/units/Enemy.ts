@@ -1,4 +1,4 @@
-import { Behaviour, GameObject } from '@needle-tools/engine';
+import { Behaviour, CapsuleCollider, GameObject, Rigidbody } from '@needle-tools/engine';
 import { MathUtils, Vector3, Object3D } from 'three';
 import * as THREE from 'three';
 import { randFloat, seededRandom } from 'three/src/math/MathUtils';
@@ -8,6 +8,7 @@ export class Enemy {
 
     public speed: number = 1;
     public gameObject: GameObject;
+    public rigidBody: Rigidbody;
 
     public target: GameObject | null = null;
 
@@ -15,6 +16,7 @@ export class Enemy {
 
     constructor(gameObject: GameObject|Object3D) {
         this.gameObject = gameObject as GameObject;
+        this.rigidBody = this.gameObject.getComponent(Rigidbody)!;
     }
 
     public update(deltaTime: number) {
@@ -23,9 +25,15 @@ export class Enemy {
         this.workVector.sub(this.gameObject.position);
         this.workVector.normalize();
 
-        this.workVector.multiplyScalar(deltaTime * this.speed);
-        this.workVector.add(this.gameObject.position);
-        this.gameObject.position.copy(this.workVector);
+        this.workVector.multiplyScalar(this.speed);
+        // this.workVector.add(this.gameObject.position);
+        this.workVector.sub(this.rigidBody.getVelocity());
+
+        this.rigidBody.applyForce(this.workVector);
+        // this.rigidBody.applyImpulse(this.workVector);
+        // this.rigidBody.setVelocity(this.workVector);
+
+        // this.gameObject.position.copy(this.workVector);
     }
 
 }
@@ -50,11 +58,28 @@ export class EnemyManager extends Behaviour {
         this.enemies.forEach((e)=>e.update(deltaTime));
     }
 
+    static NewDefaultRigidBody() : Rigidbody{
+        const rb = new Rigidbody();
+        rb.lockRotationX = true;
+        rb.lockRotationZ = true;
+        rb.lockPositionY = true;
+        rb.useGravity = false;
+        return rb;
+    }
+
     SpawnEnemyAtRandomPosition() {
         const geometry = new THREE.CapsuleGeometry(0.3,1,3,6);
         const material = new THREE.MeshStandardMaterial({ color: 0xdddddd });
         const cube = new THREE.Mesh(geometry, material);
         cube.position.y += 0.5;
+
+        const collider = new CapsuleCollider();
+        collider.height = 1;
+        collider.radius = 0.3;
+        const rb = EnemyManager.NewDefaultRigidBody();
+
+        GameObject.addComponent(cube, collider);
+        GameObject.addComponent(cube, rb);
 
         const spawnPos = new Vector3(randFloat(-1,1),0,randFloat(-1,1));
         spawnPos.normalize();

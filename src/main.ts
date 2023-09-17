@@ -1,4 +1,4 @@
-import { GameObject, NeedleEngine, OrbitControls } from '@needle-tools/engine';
+import { BoxCollider, GameObject, NeedleEngine, OrbitControls } from '@needle-tools/engine';
 import { AxesHelper, GridHelper, MathUtils } from 'three';
 import * as THREE from 'three';
 import { PlayerController } from './modules/input/PlayerController';
@@ -25,6 +25,14 @@ NeedleEngine.addContextCreatedCallback((args) => {
   scene.add(cube);
   const player = new PlayerController();
   GameObject.addComponent(cube, player);
+
+  const collider = new BoxCollider();
+  collider.size = new THREE.Vector3(1,1,1);
+  const rb = EnemyManager.NewDefaultRigidBody();
+
+  GameObject.addComponent(cube, collider);
+  GameObject.addComponent(cube, rb);
+  
 
   let camController = new CameraController();
   console.log(camController);

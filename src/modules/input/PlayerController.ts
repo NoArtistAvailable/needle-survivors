@@ -1,4 +1,4 @@
-import { registerType, Behaviour, GameObject } from '@needle-tools/engine';
+import { registerType, Behaviour, GameObject, Rigidbody } from '@needle-tools/engine';
 import { InputAxis } from './InputAxis';
 import * as THREE from 'three';
 
@@ -16,7 +16,14 @@ export class PlayerController extends Behaviour {
   forwardInput: InputAxis = new InputAxis('w', 's', this.context.input);
   rightInput: InputAxis = new InputAxis('d', 'a', this.context.input);
 
-  workVector: THREE.Vector3 = new THREE.Vector3();
+  // @ts-ignore
+  rigidbody: Rigidbody;
+
+  private workVector: THREE.Vector3 = new THREE.Vector3();
+
+  start(){
+    this.rigidbody = this.gameObject.getComponent(Rigidbody)!;
+  }
 
   update() {
     this.workVector.copy(this.context!.mainCameraComponent!.forward);
@@ -33,5 +40,8 @@ export class PlayerController extends Behaviour {
     this.workVector.multiplyScalar(this.rightInput.value);
     this.workVector.multiplyScalar(this.speed * this.context.time.deltaTime);
     this.gameObject.position.add(this.workVector);
+
+    this.rigidbody.setVelocity(0,0,0);
+    this.rigidbody.setAngularVelocity(0,0,0);
   }
 }
