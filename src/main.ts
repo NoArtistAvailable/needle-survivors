@@ -3,6 +3,7 @@ import { AxesHelper, GridHelper, MathUtils } from 'three';
 import * as THREE from 'three';
 import { PlayerController } from './modules/input/PlayerController';
 import { CameraController } from './modules/input/CameraController';
+import { EnemyManager } from './modules/units/Enemy';
 
 NeedleEngine.addContextCreatedCallback((args) => {
   const context = args.context!;
@@ -29,5 +30,10 @@ NeedleEngine.addContextCreatedCallback((args) => {
   console.log(camController);
   GameObject.addComponent(camera.gameObject, camController);
   camController.target = player;
-  console.log('we got here');
+
+  const enemyManager = new EnemyManager();
+  const managerGo = new THREE.Object3D();
+  scene.add(managerGo);
+  GameObject.addComponent(managerGo, enemyManager);
+
 });

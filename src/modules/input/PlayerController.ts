@@ -1,9 +1,16 @@
-import { registerType, Behaviour } from '@needle-tools/engine';
+import { registerType, Behaviour, GameObject } from '@needle-tools/engine';
 import { InputAxis } from './InputAxis';
 import * as THREE from 'three';
 
 @registerType
 export class PlayerController extends Behaviour {
+  static get Instance() : PlayerController{
+    if(!PlayerController._instance) PlayerController._instance = GameObject.findObjectOfType(PlayerController);
+    return PlayerController._instance!; 
+  }
+  private static _instance: PlayerController|null = null;
+
+
   speed: number = 2;
 
   forwardInput: InputAxis = new InputAxis('w', 's', this.context.input);

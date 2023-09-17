@@ -16,7 +16,7 @@ export default defineConfig(async ({ command }) => {
                 'https://localhost:1107': 'https://localhost:1107'
             },
             strictPort: true,
-            port: 1107,
+            port: 7860,
         },
         build: {
             outDir: "./dist",

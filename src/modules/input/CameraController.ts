@@ -18,11 +18,9 @@ export class CameraController extends Behaviour {
 
   private targetPosition: Vector3 = new Vector3(0, 0, 0);
   start() {
-    console.log('!');
     if (this.target) this.targetPosition.copy(this.target.gameObject.position);
   }
   update() {
-    console.log('!');
     if (!this.target) return;
     this.targetPosition.lerp(
       this.target.gameObject.position,
