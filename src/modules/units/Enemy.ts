@@ -29,26 +29,13 @@ export class Enemy {
     }
 
     public update(deltaTime: number) {
-        // if(this.rigidBody.getVelocity().length() > 10) console.log(this.rigidBody.getVelocity());
         if (!this.target) return;
 
         this.GetTargetDirection(this.workVector);
         this.workVector.multiplyScalar(this.speed);
-        // this.workVector.add(this.gameObject.position);
-        this.workVector.sub(this.rigidBody.smoothedVelocity);
 
-        if(this.workVector.length() > 10) console.log("wat", this.rigidBody.smoothedVelocity);
-
-        // this.workVector.multiplyScalar(deltaTime);
-        // const logNow = new Vector3().copy(this.workVector);
-        // console.log(logNow);
-
-        // this.rigidBody.applyForce(this.workVector);
+        this.workVector.sub(this.rigidBody.getVelocity());
         this.rigidBody.setForce(this.workVector.x, this.workVector.y, this.workVector.z);
-        // this.rigidBody.applyImpulse(this.workVector);
-        // this.rigidBody.setVelocity(this.workVector);
-
-        // this.gameObject.position.copy(this.workVector);
     }
 
 }
