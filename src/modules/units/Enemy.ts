@@ -1,4 +1,4 @@
-import { Behaviour, CapsuleCollider, GameObject, Rigidbody } from '@needle-tools/engine';
+import { Behaviour, CapsuleCollider, FrameEvent, GameObject, NeedleEngine, Rigidbody } from '@needle-tools/engine';
 import { MathUtils, Vector3, Object3D } from 'three';
 import * as THREE from 'three';
 import { randFloat, seededRandom } from 'three/src/math/MathUtils';
@@ -19,17 +19,32 @@ export class Enemy {
         this.rigidBody = this.gameObject.getComponent(Rigidbody)!;
     }
 
-    public update(deltaTime: number) {
+    public GetTargetDirection(workVector: Vector3){
         if (!this.target) return;
-        this.workVector.copy(this.target.position);
-        this.workVector.sub(this.gameObject.position);
-        this.workVector.normalize();
+        workVector.copy(this.target.position);
+        workVector.y = this.gameObject.position.y;
+        workVector.sub(this.gameObject.position);
 
+        this.workVector.normalize();
+    }
+
+    public update(deltaTime: number) {
+        // if(this.rigidBody.getVelocity().length() > 10) console.log(this.rigidBody.getVelocity());
+        if (!this.target) return;
+
+        this.GetTargetDirection(this.workVector);
         this.workVector.multiplyScalar(this.speed);
         // this.workVector.add(this.gameObject.position);
-        this.workVector.sub(this.rigidBody.getVelocity());
+        this.workVector.sub(this.rigidBody.smoothedVelocity);
 
-        this.rigidBody.applyForce(this.workVector);
+        if(this.workVector.length() > 10) console.log("wat", this.rigidBody.smoothedVelocity);
+
+        // this.workVector.multiplyScalar(deltaTime);
+        // const logNow = new Vector3().copy(this.workVector);
+        // console.log(logNow);
+
+        // this.rigidBody.applyForce(this.workVector);
+        this.rigidBody.setForce(this.workVector.x, this.workVector.y, this.workVector.z);
         // this.rigidBody.applyImpulse(this.workVector);
         // this.rigidBody.setVelocity(this.workVector);
 
@@ -46,6 +61,12 @@ export class EnemyManager extends Behaviour {
 
     private leftOverSpawn: number = 0;
     private enemies: Enemy[] = [];
+
+    start(){
+        //this.context.registerCoroutineUpdate(this, this.onPhysics(), FrameEvent.PrePhysicsStep);
+        this.startCoroutine(this.onPhysics(), FrameEvent.PrePhysicsStep);
+    }
+
     update(): void {
         const deltaTime: number = this.context.time.deltaTime;
         if(this.enemies.length < this.spawnMax){
@@ -53,9 +74,15 @@ export class EnemyManager extends Behaviour {
             for (let toSpawn = 0; toSpawn < Math.floor(this.leftOverSpawn); toSpawn++)
                 this.SpawnEnemyAtRandomPosition();
             this.leftOverSpawn = MathUtils.euclideanModulo(this.leftOverSpawn, 1);
-        }
+        }        
+    }
 
-        this.enemies.forEach((e)=>e.update(deltaTime));
+    *onPhysics(){
+        while(true){
+            const deltaTime: number = this.context.time.deltaTime;
+            this.enemies.forEach((e)=>e.update(deltaTime));
+            yield;
+        }
     }
 
     static NewDefaultRigidBody() : Rigidbody{
@@ -90,9 +117,13 @@ export class EnemyManager extends Behaviour {
 
         this.context.scene.add(cube);
         const enemy = new Enemy(cube);
-        this.enemies.push(enemy);
-
         enemy.target = PlayerController.Instance.gameObject;
+        const vec = new Vector3();
+        enemy.GetTargetDirection(vec);
+        vec.multiplyScalar(enemy.speed);
+        enemy.rigidBody.setVelocity(vec);
+
+        this.enemies.push(enemy);
     }
 
 }
