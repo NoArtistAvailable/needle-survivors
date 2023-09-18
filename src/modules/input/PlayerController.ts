@@ -1,6 +1,7 @@
 import { registerType, Behaviour, GameObject, Rigidbody } from '@needle-tools/engine';
 import { InputAxis } from './InputAxis';
 import * as THREE from 'three';
+import { EnemyManager } from '../units/Enemy';
 
 @registerType
 export class PlayerController extends Behaviour {
@@ -25,7 +26,28 @@ export class PlayerController extends Behaviour {
     this.rigidbody = this.gameObject.getComponent(Rigidbody)!;
   }
 
+  basePlane: THREE.Plane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+
   update() {
+    this.movementUpdate();
+    if(this.context.input.getPointerClicked(0)){
+      console.log("meow");
+      const screenPos = this.context.input.getPointerPosition(0);
+      if(!screenPos) return;
+      const ray = this.context.mainCameraComponent!.screenPointToRay(screenPos.x, screenPos.y);
+      const point = new THREE.Vector3();
+      ray.intersectPlane(this.basePlane, point);
+      this.context.physics.sphereOverlap(point, 0.5, true).forEach((hit)=>{
+        // @ts-ignore
+        if((hit.object as GameObject).tag === "enemy"){
+          console.log("hit", hit.object);
+          EnemyManager.Instance.KillEnemy(hit.object as GameObject);
+        }
+      });
+    }
+  }
+
+  private movementUpdate(){
     this.workVector.copy(this.context!.mainCameraComponent!.forward);
     this.workVector.y = 0;
     this.workVector.normalize();

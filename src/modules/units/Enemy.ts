@@ -16,6 +16,7 @@ export class Enemy {
 
     constructor(gameObject: GameObject|Object3D) {
         this.gameObject = gameObject as GameObject;
+        this.gameObject.tag = "enemy";
         this.rigidBody = this.gameObject.getComponent(Rigidbody)!;
     }
 
@@ -41,9 +42,15 @@ export class Enemy {
 }
 
 export class EnemyManager extends Behaviour {
+    static get Instance(): EnemyManager{
+        if(!EnemyManager._instance) EnemyManager._instance = GameObject.findObjectOfType(EnemyManager)!;
+        return this._instance!;
+    }
+    static _instance: EnemyManager|null = null;
+
 
     public spawnRadius: number = 5;
-    public spawnPerSecond: number = 1;
+    public spawnPerSecond: number = 3;
     public spawnMax: number = 20;
 
     private leftOverSpawn: number = 0;
@@ -111,6 +118,14 @@ export class EnemyManager extends Behaviour {
         enemy.rigidBody.setVelocity(vec);
 
         this.enemies.push(enemy);
+    }
+
+    KillEnemy(gameObject: GameObject){
+        const index = this.enemies.findIndex(x=>x.gameObject === gameObject);
+        if(index >= 0){
+            this.enemies[index].gameObject.destroy();
+            this.enemies.splice(index, 1);
+        }
     }
 
 }
